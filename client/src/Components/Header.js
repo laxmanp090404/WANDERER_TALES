@@ -6,7 +6,7 @@ export default function Header() {
   const { setUserInfo, userInfo } = useContext(UserContext);
   const navigate = useNavigate();
   useEffect(() => {
-    fetch("http://localhost:4000/profile", {
+    fetch("https://wanderer-tales-api.vercel.app/profile", {
       credentials: "include",
     }).then((res) => {
       if (res.ok) {
@@ -21,7 +21,7 @@ export default function Header() {
   }, [setUserInfo]);
 
   function logout() {
-    fetch("http://localhost:4000/logout", {
+    fetch("https://vercel.com/laxmans-projects-b93c1af0/wanderer-tales-api/logout", {
       credentials: "include",
       method: "POST",
     });

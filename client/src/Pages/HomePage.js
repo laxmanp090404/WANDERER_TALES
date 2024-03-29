@@ -4,7 +4,7 @@ import Post from "../Components/Post";
 function HomePage() {
   const [posts, setPosts] = useState([]);
   useEffect(() => {
-    fetch("http://localhost:4000/getblogposts")
+    fetch("https://wanderer-tales-api.vercel.app/getblogposts")
       .then((response) => response.json())
       .then((posts) => setPosts(posts))
       .catch((error) => console.error("Error fetching blog posts:", error));
