@@ -43,7 +43,7 @@ function EditPost() {
   ];
 
   useEffect(() => {
-    fetch(`https://vercel.com/laxmans-projects-b93c1af0/wanderer-tales-api/getblogposts/${id}`)
+    fetch(`http://localhost:4000/getblogposts/${id}`)
       .then((response) => response.json())
       .then((postInfo) => {
         setTitle(postInfo.title);
@@ -67,7 +67,7 @@ function EditPost() {
 
     try {
       const response = await fetch(
-        `https://wanderer-tales-api.vercel.app/getblogposts/update/${id}`,
+        `http://localhost:4000/getblogposts/update/${id}`,
         {
           method: "PUT",
           body: data,

@@ -16,7 +16,7 @@ export default function Post({
       <div className="image">
         <Link to={`/getblogposts/${_id}`}>
           <img
-            src={"https://vercel.com/laxmans-projects-b93c1af0/wanderer-tales-api/" + cover}
+            src={"http://localhost:4000/" + cover}
             className="rounded-xl"
             alt="blog"
           />

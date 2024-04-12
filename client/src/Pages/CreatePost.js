@@ -49,7 +49,7 @@ function CreatePost() {
     data.set("content", stripHtmlTags(content)); // Strip HTML tags before storing
     data.set("file", files[0]);
     data.set("place", place);
-    const response = await fetch("https://wanderer-tales-api.vercel.app/createblog", {
+    const response = await fetch("http://localhost:4000/createblog", {
       method: "POST",
       body: data,
       credentials: "include",

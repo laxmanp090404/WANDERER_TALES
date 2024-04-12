@@ -16,7 +16,7 @@ const app = express();
 
 app.use(express.json());
 app.use(
-  cors({ credentials: true, origin: "https://wanderer-tales.vercel.app" })
+  cors({ credentials: true, origin: "http://localhost:3000" })
 );
 app.use(cookieparser());
 app.use("/upload", express.static(__dirname + "/upload"));
@@ -70,6 +70,7 @@ app.post("/login", async (req, res) => {
         username,
       });
     } else {
+      console.log(password)
       res.status(401).json("Wrong credentials");
     }
   } catch (error) {

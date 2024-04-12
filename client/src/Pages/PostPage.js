@@ -9,7 +9,7 @@ function PostPage() {
   const { userInfo } = useContext(UserContext);
 
   useEffect(() => {
-    fetch(`https://vercel.com/laxmans-projects-b93c1af0/wanderer-tales-api/getblogposts/${id}`).then((response) => {
+    fetch(`http://localhost:4000/getblogposts/${id}`).then((response) => {
       response
         .json()
         .then((postInfo) => {
@@ -55,7 +55,7 @@ function PostPage() {
         )}
         <div className="image">
           <img
-            src={`https://wanderer-tales-api.vercel.app/${postInfo.cover}`}
+            src={`http://localhost:4000/${postInfo.cover}`}
             alt="post"
             className="self-center w-[900px] h-[500px] rounded-xl shadow-2xl m-3"
           />
