@@ -8,7 +8,7 @@ const cookieparser = require("cookie-parser");
 const multer = require("multer");
 const fs = require("fs");
 const PostModel = require("./Models/Post");
-
+require('dotenv').config()
 const saltRounds = 10;
 const secret = "asawq6q7q833e973ndi";
 const uploadMiddleware = multer({ dest: "upload/" });
@@ -20,15 +20,15 @@ app.use(
 );
 app.use(cookieparser());
 app.use("/upload", express.static(__dirname + "/upload"));
-
-app.listen(4000, () => {
-  console.log("Server is running on port 4000");
+const port = 4000 || process.env.port
+app.listen(port, () => {
+  console.log("Server is running on port "+port);
 });
 
 const dbConnect = async () => {
   try {
     await mongoose.connect(
-      "mongodb+srv://laxmanpanjalingam2004:sairam@cluster0.bslmqko.mongodb.net/TravelBlog3?retryWrites=true&w=majority&appName=Cluster0"
+      process.env.mongo_url
     );
     console.log("DB connected");
   } catch (error) {
