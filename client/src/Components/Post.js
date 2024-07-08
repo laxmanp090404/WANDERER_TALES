@@ -12,17 +12,18 @@ export default function Post({
 }) {
   const formattedDate = format(new Date(createdAt), "MMM d,yyyy HH:mm");
   return (
-    <div className="post shadow-2xl  p-6 w-[400px] h-[500px] rounded-xl">
+
+    <div className="post cursor-pointer  hover:shadow-green-600 shadow-sm hover:shadow-2xl  px-6 py-3 mx-5 my-3 w-[400px] h-[450px] rounded-xl flex flex-col justify-around hover:scale-110 ease-out duration-300">
       <div className="image">
         <Link to={`/getblogposts/${_id}`}>
           <img
             src={"http://localhost:4000/" + cover}
-            className="rounded-xl"
+            className="rounded-xl w-[600px] h-[200px] my-2"
             alt="blog"
           />
         </Link>
       </div>
-      <div className="texts">
+      <div className="texts my-10">
         <Link to={`/getblogposts/${_id}`}>
           <h2 className="text-3xl edu-nsw text-center">"{title}"</h2>
         </Link>

@@ -15,27 +15,33 @@ const uploadMiddleware = multer({ dest: "upload/" });
 const app = express();
 
 app.use(express.json());
-app.use(
-  cors({ credentials: true, origin: "http://localhost:3000" })
-);
+
+// Updated CORS setup to allow credentials and specify allowed origins
+const corsOptions = {
+  origin: "http://localhost:3000", // Adjust this to your frontend origin
+  credentials: true, // Enable sending cookies across domains
+};
+
+app.use(cors(corsOptions));
 app.use(cookieparser());
 app.use("/upload", express.static(__dirname + "/upload"));
-const port = 4000 || process.env.port
+
+const port = process.env.PORT || 4000; // Adjusted port definition
 app.listen(port, () => {
-  console.log("Server is running on port "+port);
+  console.log("Server is running on port " + port);
 });
 
 const dbConnect = async () => {
   try {
-    await mongoose.connect(
-      process.env.mongo_url
-    );
+    await mongoose.connect(process.env.mongo_url);
     console.log("DB connected");
   } catch (error) {
     console.error("DB connection error:", error);
   }
 };
 dbConnect();
+
+// Rest of your code remains unchanged...
 
 app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
@@ -65,7 +71,7 @@ app.post("/login", async (req, res) => {
     const passOk = await bcrypt.compare(password, userDoc.password);
     if (passOk) {
       const token = jwt.sign({ username, id: userDoc._id }, secret);
-      res.cookie("token", token, { httpOnly: true }).json({
+      res.cookie("token", token, { httpOnly: false }).json({
         id: userDoc._id,
         username,
       });
