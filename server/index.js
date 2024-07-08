@@ -18,7 +18,7 @@ app.use(express.json());
 
 // Updated CORS setup to allow credentials and specify allowed origins
 const corsOptions = {
-  origin: "http://localhost:3000", // Adjust this to your frontend origin
+  origin: "https://wanderer-tales-api.vercel.app", // Adjust this to your frontend origin
   credentials: true, // Enable sending cookies across domains
 };
 
