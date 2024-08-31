@@ -18,7 +18,7 @@ app.use(express.json());
 
 // Updated CORS setup to allow credentials and specify allowed origins
 const corsOptions = {
-  origin: "https://wanderer-tales.vercel.app", // Adjust this to your frontend origin
+  origin: process.env.client_url, // Adjust this to your frontend origin
   credentials: true, // Enable sending cookies across domains
 };
 
@@ -46,18 +46,22 @@ dbConnect();
 app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
   try {
-    const salt = await bcrypt.genSalt(saltRounds);
-    const hashedPassword = await bcrypt.hash(password, salt);
+     const hashedPassword = bcrypt.hash(password,process.env.saltrounds);
 
     const newUser = await UserModel.create({
       username,
       password: hashedPassword,
     });
-    console.log("User created successfully:", newUser);
-    res.json(newUser);
+    if(newUser){
+      console.log("User created successfully:", newUser);
+      res.status(201).json({newUser,message:"Created Your account successfully"});
+    }
+    else{
+      res.status(400).json({message:"Not registered.Try Again"})
+    }
   } catch (error) {
     console.error("Signup error:", error);
-    res.status(400).json({ error });
+    res.status(500).json("Internal server error : " + { error });
   }
 });
 
@@ -65,16 +69,20 @@ app.post("/login", async (req, res) => {
   const { username, password } = req.body;
   try {
     const userDoc = await UserModel.findOne({ username });
+    if(!username || !password){
+      return res.status(400).json("Please enter all fields")
+    }
     if (!userDoc) {
       return res.status(401).json("User not found");
     }
     const passOk = await bcrypt.compare(password, userDoc.password);
     if (passOk) {
-      const token = jwt.sign({ username, id: userDoc._id }, secret);
-      res.cookie("token", token, { httpOnly: false }).json({
-        id: userDoc._id,
-        username,
-      });
+      const token = jwt.sign({ username, id: userDoc._id }, secret,{ expiresIn: process.env.JWT_EXPIRES_TIME });
+      res.cookie("token", token, {
+        expires: new Date(Date.now() + process.env.cookieExpiresTime * 24 * 60 * 60 * 1000),
+        httpOnly: true
+    });
+      res.status(200).json({"message":"Login successful",user:userDoc});
     } else {
       console.log(password)
       res.status(401).json("Wrong credentials");
@@ -101,8 +109,18 @@ app.get("/profile", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie("token").json("Logout successful");
+  const { token } = req.cookies;
+  if (!token) {
+    return res.status(401).json({ message: "Unauthorized - Token not provided" });
+  }
+  jwt.verify(token, secret, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: "Unauthorized - Invalid token" });
+    }
+    res.clearCookie("token").json({ message: "Logout successful" });
+  });
 });
+
 
 app.post("/createblog", uploadMiddleware.single("file"), async (req, res) => {
   try {
@@ -111,7 +129,12 @@ app.post("/createblog", uploadMiddleware.single("file"), async (req, res) => {
     const parts = req.file.originalname.split(".");
     const ext = parts[parts.length - 1];
     const newPath = path + "." + ext;
-    fs.renameSync(path, newPath);
+    fs.rename(path, newPath, (err) => {
+      if (err) {
+        console.error("Error renaming file:", err);
+      }
+    });
+    
     const { token } = req.cookies;
     const decoded = jwt.verify(token, secret);
     const post = await PostModel.create({
@@ -122,7 +145,8 @@ app.post("/createblog", uploadMiddleware.single("file"), async (req, res) => {
       cover: newPath,
       author: decoded.id,
     });
-    res.json(post);
+    res.status(200).json(post,{message:"Post created successfully"});
+
   } catch (error) {
     console.error("Create blog error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -151,7 +175,7 @@ app.get("/getblogposts/:id", async (req, res) => {
     if (!postDoc) {
       return res.status(404).json({ message: "Post not found" });
     }
-    res.json(postDoc);
+    res.status(200).json(postDoc);
   } catch (error) {
     console.error("Get blog post by ID error:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -172,7 +196,12 @@ app.put(
         const parts = req.file.originalname.split(".");
         const ext = parts[parts.length - 1];
         newPath = path + "." + ext;
-        fs.renameSync(path, newPath);
+        fs.rename(path, newPath, (err) => {
+          if (err) {
+            console.error("Error renaming file:", err);
+          }
+        });
+        
       }
       const { token } = req.cookies;
       const decoded = jwt.verify(token, secret);
