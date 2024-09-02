@@ -9,7 +9,7 @@ function PostPage() {
   const { userInfo } = useContext(UserContext);
 
   useEffect(() => {
-    fetch(`http://localhost:4000/getblogposts/${id}`).then((response) => {
+    fetch(`${process.env.REACT_APP_SERVER_URL}/getblogposts/${id}`).then((response) => {
       response
         .json()
         .then((postInfo) => {
@@ -55,7 +55,7 @@ function PostPage() {
         )}
         <div className="image">
           <img
-            src={`http://localhost:4000/${postInfo.cover}`}
+            src={`${process.env.REACT_APP_SERVER_URL}/${postInfo.cover}`}
             alt="post"
             className="self-center w-[900px] h-[500px] rounded-xl shadow-2xl m-3"
           />

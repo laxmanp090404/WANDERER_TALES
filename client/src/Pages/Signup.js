@@ -9,7 +9,7 @@ function Signup() {
   const signUp = async (e) => {
     e.preventDefault();
 
-    const response = await fetch("http://localhost:4000/signup", {
+    const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/signup`, {
       method: "POST",
       body: JSON.stringify({ username, password }),
       headers: { "Content-type": "application/json" },

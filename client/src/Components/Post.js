@@ -17,7 +17,7 @@ export default function Post({
       <div className="image">
         <Link to={`/getblogposts/${_id}`}>
           <img
-            src={"http://localhost:4000/" + cover}
+            src={`${process.env.REACT_APP_SERVER_URL}/` + cover}
             className="rounded-xl w-[600px] h-[200px] my-2"
             alt="blog"
           />

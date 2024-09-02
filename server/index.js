@@ -82,7 +82,8 @@ app.post("/login", async (req, res) => {
         expires: new Date(Date.now() + process.env.cookieExpiresTime * 24 * 60 * 60 * 1000),
         httpOnly: true
     });
-      res.status(200).json({"message":"Login successful",user:userDoc});
+      res.status(200).json({"message":"Login successful",user:userDoc,"token":token});
+      console.log("cookie",res.cookie);
     } else {
       console.log(password)
       res.status(401).json("Wrong credentials");

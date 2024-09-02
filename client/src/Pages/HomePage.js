@@ -7,7 +7,7 @@ function HomePage() {
   const [filteredPosts, setFilteredPosts] = useState([]);
 
   useEffect(() => {
-    fetch("http://localhost:4000/getblogposts")
+    fetch(`${process.env.REACT_APP_SERVER_URL}/getblogposts`)
       .then((response) => response.json())
       .then((posts) => {
         setPosts(posts);

@@ -6,7 +6,7 @@ export default function Header() {
   const { setUserInfo, userInfo } = useContext(UserContext);
   const navigate = useNavigate();
   useEffect(() => {
-    fetch("http://localhost:4000/profile", {
+    fetch(`${process.env.REACT_APP_SERVER_URL}/profile`, {
       credentials: "include",
     }).then((res) => {
       if (res.ok) {
@@ -14,14 +14,18 @@ export default function Header() {
           setUserInfo(userInfo);
         });
       } else {
-        // If there's an error, set user info to null
         setUserInfo(null);
       }
     });
-  }, [setUserInfo]);
+  }, [setUserInfo,userInfo]);
+
+  // Re-render the Header when userInfo changes
+  useEffect(() => {
+    console.log(userInfo, "userinfo");
+  }, [userInfo]);
 
   function logout() {
-    fetch("http://localhost:4000/logout", {
+    fetch(`${process.env.REACT_APP_SERVER_URL}/logout`, {
       credentials: "include",
       method: "POST",
     });

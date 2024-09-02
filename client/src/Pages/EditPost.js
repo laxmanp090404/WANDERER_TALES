@@ -43,7 +43,7 @@ function EditPost() {
   ];
 
   useEffect(() => {
-    fetch(`http://localhost:4000/getblogposts/${id}`)
+    fetch(`${process.env.REACT_APP_SERVER_URL}/getblogposts/${id}`)
       .then((response) => response.json())
       .then((postInfo) => {
         setTitle(postInfo.title);
@@ -67,7 +67,7 @@ function EditPost() {
 
     try {
       const response = await fetch(
-        `http://localhost:4000/getblogposts/update/${id}`,
+        `${process.env.REACT_APP_SERVER_URL}/getblogposts/update/${id}`,
         {
           method: "PUT",
           body: data,

@@ -8,9 +8,10 @@ function Login() {
   const [redirect, setRedirect] = useState(false);
   const navigate = useNavigate();
   const { setUserInfo } = useContext(UserContext);
+  
   const LoginFun = async (e) => {
     e.preventDefault();
-    const response = await fetch("http://localhost:4000/login", {
+    const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/login`, {
       method: "POST",
       body: JSON.stringify({ username, password }),
       headers: { "Content-type": "application/json" },
@@ -19,12 +20,15 @@ function Login() {
     if (response.ok) {
       response.json().then((userInfo) => {
         setUserInfo(userInfo);
-        setRedirect(true);
+        setRedirect(true);  // Trigger navigation
       });
     } else {
       alert("wrong credentials");
     }
   };
+  
+
+
   if (redirect) {
     navigate("/");
   }
