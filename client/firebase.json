@@ -1,13 +1,17 @@
 {
-  "database": {
-    "rules": "n"
-  },
   "hosting": {
-    "public": "build",
+    "site":"wanderertalestravelblog",
+    "public": "public",
     "ignore": [
       "firebase.json",
       "**/.*",
       "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
     ]
   }
 }

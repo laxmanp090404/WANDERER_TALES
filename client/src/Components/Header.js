@@ -11,13 +11,13 @@ export default function Header() {
     }).then((res) => {
       if (res.ok) {
         res.json().then((userInfo) => {
-          setUserInfo(userInfo);
+          setUserInfo(userInfo.user);
         });
       } else {
         setUserInfo(null);
       }
     });
-  }, [setUserInfo,userInfo]);
+  }, [setUserInfo]);
 
   // Re-render the Header when userInfo changes
   useEffect(() => {

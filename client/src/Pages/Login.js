@@ -19,10 +19,11 @@ function Login() {
     });
     if (response.ok) {
       response.json().then((userInfo) => {
-        setUserInfo(userInfo);
-        setRedirect(true);  // Trigger navigation
+        setUserInfo(userInfo.user);
+        navigate("/");  // Directly navigate after setting user info
       });
-    } else {
+    }
+     else {
       alert("wrong credentials");
     }
   };
