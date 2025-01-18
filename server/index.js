@@ -5,13 +5,10 @@ const UserModel = require("./Models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const cookieparser = require("cookie-parser");
-const multer = require("multer");
-const fs = require("fs");
 const PostModel = require("./Models/Post");
 require('dotenv').config()
 const saltRounds = 10;
 const secret = "asawq6q7q833e973ndi";
-const uploadMiddleware = multer({ dest: "upload/" });
 const app = express();
 
 app.use(express.json());
@@ -24,9 +21,8 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(cookieparser());
-app.use("/upload", express.static(__dirname + "/upload"));
 
-const port = process.env.PORT || 4000; // Adjusted port definition
+const port = process.env.PORT || 4000; 
 app.listen(port, () => {
   console.log("Server is running on port " + port);
 });
@@ -43,11 +39,17 @@ dbConnect();
 
 // Rest of your code remains unchanged...
 
+app.get('/',(req,res)=>{
+    res.send("Welcome to wanderer tales server")
+});
 app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
   try {
-     const hashedPassword = bcrypt.hash(password,process.env.saltrounds);
-
+     const hashedPassword = bcrypt.hashSync(password,process.env.saltrounds);
+     const user  = await UserModel.findOne({username});
+     if(user){
+       return res.status(400).json({message:"User already exists"});
+     }
     const newUser = await UserModel.create({
       username,
       password: hashedPassword,
@@ -75,7 +77,7 @@ app.post("/login", async (req, res) => {
     if (!userDoc) {
       return res.status(401).json("User not found");
     }
-    const passOk = await bcrypt.compare(password, userDoc.password);
+    const passOk = await bcrypt.compareSync(password, userDoc.password);
     if (passOk) {
       const token = jwt.sign({ username, id: userDoc._id }, secret,{ expiresIn: process.env.JWT_EXPIRES_TIME });
       res.cookie("token", token, {
@@ -123,36 +125,36 @@ app.post("/logout", (req, res) => {
 });
 
 
-app.post("/createblog", uploadMiddleware.single("file"), async (req, res) => {
-  try {
-    const { title, place, summary, content } = req.body;
-    const { path } = req.file;
-    const parts = req.file.originalname.split(".");
-    const ext = parts[parts.length - 1];
-    const newPath = path + "." + ext;
-    fs.rename(path, newPath, (err) => {
-      if (err) {
-        console.error("Error renaming file:", err);
-      }
-    });
+// app.post("/createblog", uploadMiddleware.single("file"), async (req, res) => {
+//   try {
+//     const { title, place, summary, content } = req.body;
+//     const { path } = req.file;
+//     const parts = req.file.originalname.split(".");
+//     const ext = parts[parts.length - 1];
+//     const newPath = path + "." + ext;
+//     fs.rename(path, newPath, (err) => {
+//       if (err) {
+//         console.error("Error renaming file:", err);
+//       }
+//     });
     
-    const { token } = req.cookies;
-    const decoded = jwt.verify(token, secret);
-    const post = await PostModel.create({
-      title,
-      place,
-      summary,
-      content,
-      cover: newPath,
-      author: decoded.id,
-    });
-    res.status(200).json(post,{message:"Post created successfully"});
+//     const { token } = req.cookies;
+//     const decoded = jwt.verify(token, secret);
+//     const post = await PostModel.create({
+//       title,
+//       place,
+//       summary,
+//       content,
+//       cover: newPath,
+//       author: decoded.id,
+//     });
+//     res.status(200).json(post,{message:"Post created successfully"});
 
-  } catch (error) {
-    console.error("Create blog error:", error);
-    res.status(500).json({ error: "Internal server error" });
-  }
-});
+//   } catch (error) {
+//     console.error("Create blog error:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
 
 app.get("/getblogposts", async (req, res) => {
   try {
@@ -183,50 +185,50 @@ app.get("/getblogposts/:id", async (req, res) => {
   }
 });
 
-app.put(
-  "/getblogposts/update/:id",
-  uploadMiddleware.single("file"),
-  async (req, res) => {
-    console.log("Update post request received");
-    try {
-      const { id } = req.params;
-      const { title, place, summary, content } = req.body;
-      let newPath = null;
-      if (req.file) {
-        const { path } = req.file;
-        const parts = req.file.originalname.split(".");
-        const ext = parts[parts.length - 1];
-        newPath = path + "." + ext;
-        fs.rename(path, newPath, (err) => {
-          if (err) {
-            console.error("Error renaming file:", err);
-          }
-        });
+// app.put(
+//   "/getblogposts/update/:id",
+//   uploadMiddleware.single("file"),
+//   async (req, res) => {
+//     console.log("Update post request received");
+//     try {
+//       const { id } = req.params;
+//       const { title, place, summary, content } = req.body;
+//       let newPath = null;
+//       if (req.file) {
+//         const { path } = req.file;
+//         const parts = req.file.originalname.split(".");
+//         const ext = parts[parts.length - 1];
+//         newPath = path + "." + ext;
+//         fs.rename(path, newPath, (err) => {
+//           if (err) {
+//             console.error("Error renaming file:", err);
+//           }
+//         });
         
-      }
-      const { token } = req.cookies;
-      const decoded = jwt.verify(token, secret);
-      const post = await PostModel.findById(id);
-      if (!post) {
-        return res.status(404).json({ message: "Post not found" });
-      }
-      if (post.author.toString() !== decoded.id) {
-        return res.status(401).json({ message: "You are not the author" });
-      }
-      post.title = title;
-      post.place = place;
-      post.summary = summary;
-      post.content = content;
-      if (newPath) {
-        post.cover = newPath;
-      }
-      await post.save();
-      res.json(post);
-    } catch (error) {
-      console.error("Update blog post error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
-  }
-);
+//       }
+//       const { token } = req.cookies;
+//       const decoded = jwt.verify(token, secret);
+//       const post = await PostModel.findById(id);
+//       if (!post) {
+//         return res.status(404).json({ message: "Post not found" });
+//       }
+//       if (post.author.toString() !== decoded.id) {
+//         return res.status(401).json({ message: "You are not the author" });
+//       }
+//       post.title = title;
+//       post.place = place;
+//       post.summary = summary;
+//       post.content = content;
+//       if (newPath) {
+//         post.cover = newPath;
+//       }
+//       await post.save();
+//       res.json(post);
+//     } catch (error) {
+//       console.error("Update blog post error:", error);
+//       res.status(500).json({ error: "Internal server error" });
+//     }
+//   }
+// );
 
 module.exports = app;
