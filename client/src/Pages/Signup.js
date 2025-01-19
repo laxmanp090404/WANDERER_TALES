@@ -15,11 +15,15 @@ function Signup() {
       headers: { "Content-type": "application/json" },
     });
 
-    if (response.status === 200) {
-      alert("Successfully Signed Up");
+    if (response.status === 201) {
+      alert("User created successfully");
+      console.log(response)
       navigate("/login");
-    } else {
-      alert("failed to sign up");
+    } else if(response.status === 200){ 
+      alert("User already exists");
+    }
+    else{
+      alert("error signing up")
     }
   };
   return (

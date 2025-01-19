@@ -2,14 +2,15 @@ import React, { useState } from "react";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { useNavigate } from "react-router-dom";
+import UploadWidget from "../Components/UploadWidget";
 
 function CreatePost() {
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [summary, setSummary] = useState("");
   const [content, setContent] = useState("");
-  const [files, setFiles] = useState("");
   const [place, setPlace] = useState("");
+  const [cover, setCover] = useState("");
   const [redirect, setRedirect] = useState(false);
 
   const modules = {
@@ -42,23 +43,42 @@ function CreatePost() {
   ];
 
   async function createNewPost(e) {
-    e.preventDefault();
-    const data = new FormData();
-    data.set("title", title);
-    data.set("summary", summary);
-    data.set("content", stripHtmlTags(content)); // Strip HTML tags before storing
-    data.set("file", files[0]);
-    data.set("place", place);
-    const response = await fetch(`${process.env.REACT_APP_SERVER_URL}/createblog`, {
-      method: "POST",
-      body: data,
-      credentials: "include",
-    });
+    e.preventDefault(); // Prevent default form submission behavior
+  
+    if (!title || !summary || !content || !place || !cover) {
+      alert("Please fill in all fields before submitting!");
+      return;
+    }
+  
+    const postData = {
+      title,
+      summary,
+      content: stripHtmlTags(content),
+      cover,
+      place,
+    };
+  
+    const response = await fetch(
+      `${process.env.REACT_APP_SERVER_URL}/createblog`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(postData),
+        credentials: "include",
+      }
+    );
+  
     if (response.ok) {
       setRedirect(true);
-      alert("created post successfully");
+      alert("Created post successfully");
+    } else {
+      const error = await response.json();
+      alert(`Failed to create post. Error: ${error.message}`);
     }
   }
+  
 
   function stripHtmlTags(html) {
     const doc = new DOMParser().parseFromString(html, "text/html");
@@ -86,9 +106,7 @@ function CreatePost() {
         placeholder="Place"
         className="p-2 focus:outline-none border-b-2 border-black montserrat"
         value={place}
-        onChange={(e) => {
-          setPlace(e.target.value);
-        }}
+        onChange={(e) => setPlace(e.target.value)}
       />
       <input
         type="summary"
@@ -97,21 +115,20 @@ function CreatePost() {
         value={summary}
         onChange={(e) => setSummary(e.target.value)}
       />
-      <input
-        type="file"
-        onChange={(e) => setFiles(e.target.files)}
-        className="montserrat file:text-[rgb(4,95,68)] file:border-none file:rounded-xl file:bg-[rgb(16,255,183)]"
-      />
+      <UploadWidget setCover={setCover} />
       <ReactQuill
         onChange={(value) => setContent(value)}
         modules={modules}
         formats={formats}
         placeholder="Share your experiences..."
-        className="mt-5 p-2 focus:outline-none  montserrat"
+        className="mt-5 p-2 focus:outline-none montserrat"
         style={{ fontFamily: "Montserrat" }}
         value={content}
       />
-      <button className="montserrat p-2 bg-[rgb(16,255,183)] w-[15rem] self-center rounded-xl border-b-4 border-[rgb(0,114,80)] hover:bg-[rgb(0,127,89)] duration-300 hover:text-white">
+      <button
+        type="submit"
+        className="montserrat p-2 bg-[rgb(16,255,183)] w-[15rem] self-center rounded-xl border-b-4 border-[rgb(0,114,80)] hover:bg-[rgb(0,127,89)] duration-300 hover:text-white"
+      >
         Create Blog
       </button>
     </form>

@@ -10,6 +10,7 @@ export default function Header() {
       credentials: "include",
     }).then((res) => {
       if (res.ok) {
+        console.log(res, "res");
         res.json().then((userInfo) => {
           setUserInfo(userInfo.user);
         });
@@ -35,9 +36,9 @@ export default function Header() {
   }
 
   const username = userInfo?.username;
-
+  console.log(username, "username");
   return (
-    <header className="tauri-regular flex items-center   h-[8rem] sticky top-0 z-10 justify-between bg-white">
+    <header className="tauri-regular flex items-center   h-[7rem] sticky top-0 z-10 justify-between bg-white">
       <Link to="/" className="logo w-[96px] h-[96px] p-2 ">
         <img src="assets/logo.png" className="rounded-xl" alt="logo" />
       </Link>

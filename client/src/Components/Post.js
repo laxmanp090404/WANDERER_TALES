@@ -17,7 +17,7 @@ export default function Post({
       <div className="image">
         <Link to={`/getblogposts/${_id}`}>
           <img
-            src={`${process.env.REACT_APP_SERVER_URL}/` + cover}
+            src={cover}
             className="rounded-xl w-[600px] h-[200px] my-2"
             alt="blog"
           />
@@ -43,7 +43,7 @@ export default function Post({
           </div>
         </div>
 
-        <p className="summary font-mono">{summary}</p>
+        <p className="summary font-mono line-clamp-2">{summary}</p>
         {/* <p>{content}</p> */}
       </div>
     </div>

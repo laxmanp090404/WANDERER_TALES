@@ -11,7 +11,9 @@ const saltRounds = 10;
 const secret = "asawq6q7q833e973ndi";
 const app = express();
 
-app.use(express.json());
+app.use(express.json()); // Handles JSON requests
+app.use(express.urlencoded({ extended: true })); // Handles URL-encoded form data
+
 
 // Updated CORS setup to allow credentials and specify allowed origins
 const corsOptions = {
@@ -45,10 +47,10 @@ app.get('/',(req,res)=>{
 app.post("/signup", async (req, res) => {
   const { username, password } = req.body;
   try {
-     const hashedPassword = bcrypt.hashSync(password,process.env.saltrounds);
-     const user  = await UserModel.findOne({username});
+    const hashedPassword = bcrypt.hashSync(password, parseInt(process.env.saltrounds) || 10);
+    const user  = await UserModel.findOne({username});
      if(user){
-       return res.status(400).json({message:"User already exists"});
+       return res.status(200).json({message:"User already exists"});
      }
     const newUser = await UserModel.create({
       username,
@@ -61,9 +63,9 @@ app.post("/signup", async (req, res) => {
     else{
       res.status(400).json({message:"Not registered.Try Again"})
     }
-  } catch (error) {
+  } catch (error) { 
     console.error("Signup error:", error);
-    res.status(500).json("Internal server error : " + { error });
+    res.status(500).json("Internal server error : " + { error: "Internal server error" ,message:"Error creating user" });
   }
 });
 
@@ -92,7 +94,7 @@ app.post("/login", async (req, res) => {
     }
   } catch (error) {
     console.error("Login error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" ,message:"Error logging in" });
   }
 });
 
@@ -107,9 +109,12 @@ app.get("/profile", (req, res) => {
     if (err) {
       return res.status(401).json({ message: "Unauthorized - Invalid token" });
     }
-    res.json(decoded);
+    // Wrap the decoded info in a 'user' object
+    res.json({ user: decoded });
+    console.log("decoded", decoded);
   });
 });
+
 
 app.post("/logout", (req, res) => {
   const { token } = req.cookies;
@@ -125,36 +130,42 @@ app.post("/logout", (req, res) => {
 });
 
 
-// app.post("/createblog", uploadMiddleware.single("file"), async (req, res) => {
-//   try {
-//     const { title, place, summary, content } = req.body;
-//     const { path } = req.file;
-//     const parts = req.file.originalname.split(".");
-//     const ext = parts[parts.length - 1];
-//     const newPath = path + "." + ext;
-//     fs.rename(path, newPath, (err) => {
-//       if (err) {
-//         console.error("Error renaming file:", err);
-//       }
-//     });
-    
-//     const { token } = req.cookies;
-//     const decoded = jwt.verify(token, secret);
-//     const post = await PostModel.create({
-//       title,
-//       place,
-//       summary,
-//       content,
-//       cover: newPath,
-//       author: decoded.id,
-//     });
-//     res.status(200).json(post,{message:"Post created successfully"});
+app.post("/createblog", async (req, res) => {
+  try {
+    const { title, place, summary, content, cover } = req.body;
+    console.log("Payload received in createblog route:", req.body);
 
-//   } catch (error) {
-//     console.error("Create blog error:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
+    const { token } = req.cookies;
+    if (!token) {
+      return res.status(401).json({ message: "Unauthorized - Token not provided" });
+    }
+
+    const decoded = jwt.verify(token, secret);
+    if (!title || !place || !summary || !content || !cover) {
+      return res.status(400).json({
+        message: "All fields are required",
+        missingFields: { title, place, summary, content, cover },
+      });
+    }
+
+    const newPost = await PostModel.create({
+      title,
+      place,
+      summary,
+      content,
+      cover,
+      author: decoded.id,
+    });
+
+    console.log("New Post Created:", newPost);
+    return res.status(201).json({ message: "Post created successfully", post: newPost });
+  } catch (error) {
+    console.error("Error creating blog:", error);
+    return res.status(500).json({ error: "Internal server error", message: "Failed to create post" });
+  }
+});
+
+
 
 app.get("/getblogposts", async (req, res) => {
   try {
@@ -165,7 +176,7 @@ app.get("/getblogposts", async (req, res) => {
     res.json(posts);
   } catch (error) {
     console.error("Get blog posts error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error" ,message:"Error fetching posts" });
   }
 });
 
@@ -181,54 +192,41 @@ app.get("/getblogposts/:id", async (req, res) => {
     res.status(200).json(postDoc);
   } catch (error) {
     console.error("Get blog post by ID error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({ error: "Internal server error",message:"Error fetching post" });
   }
 });
 
-// app.put(
-//   "/getblogposts/update/:id",
-//   uploadMiddleware.single("file"),
-//   async (req, res) => {
-//     console.log("Update post request received");
-//     try {
-//       const { id } = req.params;
-//       const { title, place, summary, content } = req.body;
-//       let newPath = null;
-//       if (req.file) {
-//         const { path } = req.file;
-//         const parts = req.file.originalname.split(".");
-//         const ext = parts[parts.length - 1];
-//         newPath = path + "." + ext;
-//         fs.rename(path, newPath, (err) => {
-//           if (err) {
-//             console.error("Error renaming file:", err);
-//           }
-//         });
-        
-//       }
-//       const { token } = req.cookies;
-//       const decoded = jwt.verify(token, secret);
-//       const post = await PostModel.findById(id);
-//       if (!post) {
-//         return res.status(404).json({ message: "Post not found" });
-//       }
-//       if (post.author.toString() !== decoded.id) {
-//         return res.status(401).json({ message: "You are not the author" });
-//       }
-//       post.title = title;
-//       post.place = place;
-//       post.summary = summary;
-//       post.content = content;
-//       if (newPath) {
-//         post.cover = newPath;
-//       }
-//       await post.save();
-//       res.json(post);
-//     } catch (error) {
-//       console.error("Update blog post error:", error);
-//       res.status(500).json({ error: "Internal server error" });
-//     }
-//   }
-// );
+app.put(
+  "/getblogposts/update/:id",
+  async (req, res) => {
+    console.log("Update post request received");
+    try {
+      const { id } = req.params;
+      const { title, place, summary, content,cover } = req.body;
+      const newPath = cover;
+      const { token } = req.cookies;
+      const decoded = jwt.verify(token, secret);
+      const post = await PostModel.findById(id);
+      if (!post) {
+        return res.status(404).json({ message: "Post not found" });
+      }
+      if (post.author.toString() !== decoded.id) {
+        return res.status(401).json({ message: "You are not the author" });
+      }
+      post.title = title;
+      post.place = place;
+      post.summary = summary;
+      post.content = content;
+      if (newPath) {
+        post.cover = newPath;
+      }
+      await post.save();
+      res.status(200).json({post,message:"Successfully updated post"});
+    } catch (error) {
+      console.error("Update blog post error:", error);
+      res.status(500).json({ error: "Internal server error" ,message:"Error updating post"});
+    }
+  }
+);
 
 module.exports = app;

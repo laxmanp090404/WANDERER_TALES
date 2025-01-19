@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
+import UploadWidget from "../Components/UploadWidget";
 
 function EditPost() {
   const { id } = useParams();
@@ -10,7 +11,7 @@ function EditPost() {
   const [summary, setSummary] = useState("");
   const [content, setContent] = useState("");
   const [place, setPlace] = useState("");
-  const [file, setFile] = useState(null);
+  const [cover, setCover] = useState(""); // Changed from file to cover
   const [redirect, setRedirect] = useState(false);
 
   const modules = {
@@ -50,6 +51,7 @@ function EditPost() {
         setPlace(postInfo.place);
         setSummary(postInfo.summary);
         setContent(postInfo.content);
+        setCover(postInfo.cover); // Set the current cover image
       })
       .catch((error) => {
         console.error("Fetch post error:", error);
@@ -58,20 +60,22 @@ function EditPost() {
 
   const updatePost = async (e) => {
     e.preventDefault();
-    const data = new FormData();
-    data.append("title", title);
-    data.append("place", place);
-    data.append("summary", summary);
-    data.append("content", stripHtmlTags(content)); 
-    data.append("file", file);
+    const postData = {
+      title,
+      place,
+      summary,
+      content: stripHtmlTags(content),
+      cover,
+    };
 
     try {
       const response = await fetch(
         `${process.env.REACT_APP_SERVER_URL}/getblogposts/update/${id}`,
         {
           method: "PUT",
-          body: data,
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
+          body: JSON.stringify(postData),
         }
       );
       if (response.ok) {
@@ -114,16 +118,29 @@ function EditPost() {
         onChange={(e) => setSummary(e.target.value)}
         className="p-2 focus:outline-none border-b-2 border-black montserrat"
       />
-      <input
-        type="file"
-        onChange={(e) => setFile(e.target.files[0])}
-        className="montserrat file:text-[rgb(4,95,68)] file:border-none file:rounded-xl file:bg-[rgb(16,255,183)]"
+      <UploadWidget setCover={setCover} />
+      {cover && (
+        <div className="flex justify-center">
+          <img
+            src={cover}
+            alt="Cover Preview"
+            className="mt-4 w-96 h-56 object-cover rounded-lg shadow-md"
+          />
+        </div>
+      )}
+      <ReactQuill
+        value={content}
+        onChange={setContent}
+        className="mt-5 p-2 focus:outline-none montserrat"
+        modules={modules}
+        formats={formats}
       />
-      <ReactQuill value={content} onChange={setContent} 
-      className="mt-5 p-2 focus:outline-none  montserrat"
-      modules={modules}
-      formats={formats}/>
-      <button type="submit" className="montserrat p-2 bg-[rgb(16,255,183)] w-[15rem] self-center rounded-xl border-b-4 border-[rgb(0,114,80)] hover:bg-[rgb(0,127,89)] duration-300 hover:text-white">Update Blog</button>
+      <button
+        type="submit"
+        className="montserrat p-2 bg-[rgb(16,255,183)] w-[15rem] self-center rounded-xl border-b-4 border-[rgb(0,114,80)] hover:bg-[rgb(0,127,89)] duration-300 hover:text-white"
+      >
+        Update Blog
+      </button>
     </form>
   );
 }

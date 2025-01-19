@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from "react";
 import Post from "../Components/Post";
+import Loading from "../Components/Loading";
 
 function HomePage() {
   const [posts, setPosts] = useState([]);
   const [searchInput, setSearchInput] = useState("");
   const [filteredPosts, setFilteredPosts] = useState([]);
-
+  const [isLoaded, setIsLoaded] = useState(false);
   useEffect(() => {
     fetch(`${process.env.REACT_APP_SERVER_URL}/getblogposts`)
       .then((response) => response.json())
       .then((posts) => {
         setPosts(posts);
         setFilteredPosts(posts); // Set filtered posts initially
+        setIsLoaded(true);
       })
       .catch((error) => console.error("Error fetching blog posts:", error));
   }, []);
@@ -57,11 +59,23 @@ function HomePage() {
         </svg>
       </div>
       <div className="max-w-[1400px] flex example overflow-scroll mx-10 my-5 p-5 px-4">
-        {filteredPosts.map((post, index) => (
-          <div key={index} className="postcontainer mx-2 flex-shrink-0 h-full my-0">
-            <Post {...post} />
-          </div>
-        ))}
+        {
+          !isLoaded && <Loading/>
+        }
+        {
+          isLoaded && <>{filteredPosts.length > 0 ? filteredPosts.map((post, index) => (
+            <div
+  key={index}
+  className="postcontainer mx-2 flex-shrink-0 h-full my-0 overflow-hidden"
+>
+  <div className="line-clamp-1">
+    <Post {...post} />
+  </div>
+</div>
+
+          )) : <p>No posts found</p>}
+          </>
+        }
       </div>
     </div>
   );
